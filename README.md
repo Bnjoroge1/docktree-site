@@ -58,6 +58,8 @@ CLOUDFLARE_API_TOKEN
 
 The API token needs permission to deploy Cloudflare Pages projects for the account that owns `docktree.dev`.
 
+If these secrets are missing, the GitHub Actions workflow still installs dependencies and builds the site, but skips the Cloudflare deploy step.
+
 The workflow lives at:
 
 ```txt
