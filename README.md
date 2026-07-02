@@ -39,6 +39,37 @@ npm run preview
 
 Requires Node.js `>=22.12.0`.
 
+## Deployment
+
+The site deploys to Cloudflare Pages via GitHub Actions.
+
+Expected Cloudflare Pages project name:
+
+```txt
+docktree-site
+```
+
+Required GitHub repository secrets:
+
+```txt
+CLOUDFLARE_ACCOUNT_ID
+CLOUDFLARE_API_TOKEN
+```
+
+The API token needs permission to deploy Cloudflare Pages projects for the account that owns `docktree.dev`.
+
+The workflow lives at:
+
+```txt
+.github/workflows/deploy-cloudflare-pages.yml
+```
+
+It runs on:
+
+- pushes to `main` for production deployments;
+- pull requests for Cloudflare Pages preview deployments;
+- manual `workflow_dispatch` runs.
+
 ## Verification
 
 Before shipping changes, run:
