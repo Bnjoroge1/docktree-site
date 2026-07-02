@@ -1,0 +1,26 @@
+---
+import DocsLayout from '../../../layouts/DocsLayout.astro';
+---
+
+<DocsLayout title="sync" section="commands">
+  <h1>sync</h1>
+  <p class="lead">Sync setup.copy files to all worktrees.</p>
+
+  <h2>Usage</h2>
+  <pre><code>docktree sync [flags]</code></pre>
+  <p>Copies files declared in <code>setup.copy</code> from the main repo to all worktrees where they are stale (different or missing). Skips worktrees that are currently running.</p>
+
+  <h2>Flags</h2>
+  <table>
+    <thead><tr><th>Flag</th><th>Description</th></tr></thead>
+    <tbody>
+      <tr><td><code>--dry-run</code></td><td>Show what would be synced without copying</td></tr>
+      <tr><td><code>--force</code></td><td>Sync without confirmation prompt</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Examples</h2>
+  <pre><code>docktree sync
+docktree sync --dry-run
+docktree sync --force</code></pre>
+</DocsLayout>

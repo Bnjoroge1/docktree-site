@@ -1,0 +1,47 @@
+---
+import DocsLayout from '../../../layouts/DocsLayout.astro';
+---
+
+<DocsLayout title="tunnel" section="commands">
+  <h1>tunnel</h1>
+  <p class="lead">Expose worktrees externally via Cloudflare Tunnel or ngrok.</p>
+
+  <h2>Usage</h2>
+  <pre><code>docktree tunnel &lt;action&gt; [flags]</code></pre>
+  <p>The <code>tunnel</code> command allows you to share your local worktree instances externally with team members or clients. It leverages secure tunnel providers (like Cloudflare Tunnel or ngrok) to expose ports dynamically without requiring router port-forwarding or public IP addresses.</p>
+
+  <h2>Actions</h2>
+  <table>
+    <thead><tr><th>Action</th><th>Description</th></tr></thead>
+    <tbody>
+      <tr><td><code>start</code></td><td>Start a tunnel for the current worktree's primary HTTP service</td></tr>
+      <tr><td><code>stop</code></td><td>Stop the running tunnel for the current worktree</td></tr>
+      <tr><td><code>status</code></td><td>Show status and URL of the tunnel for the current worktree</td></tr>
+      <tr><td><code>list</code></td><td>Show all active tunnels across all worktrees in the repository</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Flags</h2>
+  <table>
+    <thead><tr><th>Flag</th><th>Description</th></tr></thead>
+    <tbody>
+      <tr><td><code>--provider &lt;name&gt;</code></td><td>Tunnel provider to use: <code>cloudflare</code> (default) or <code>ngrok</code></td></tr>
+      <tr><td><code>--port, -p &lt;port&gt;</code></td><td>Specific local port to expose (default: first allocated HTTP port)</td></tr>
+      <tr><td><code>--service, -s &lt;name&gt;</code></td><td>Tunnel a specific Compose service (automatically maps its HTTP port)</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Examples</h2>
+  <p>Start a Cloudflare tunnel for the current worktree (auto-detects HTTP port):</p>
+  <pre><code>docktree tunnel start</code></pre>
+  <p>Start a tunnel using ngrok for a specific service:</p>
+  <pre><code>docktree tunnel start --provider ngrok --service web</code></pre>
+  <p>Start a tunnel for a specific port:</p>
+  <pre><code>docktree tunnel start --port 41006</code></pre>
+  <p>Show tunnel status:</p>
+  <pre><code>docktree tunnel status</code></pre>
+  <p>List all tunnels currently active across worktrees:</p>
+  <pre><code>docktree tunnel list</code></pre>
+  <p>Stop the tunnel for the current worktree:</p>
+  <pre><code>docktree tunnel stop</code></pre>
+</DocsLayout>

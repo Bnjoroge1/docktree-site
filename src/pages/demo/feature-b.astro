@@ -1,0 +1,126 @@
+---
+import RetroLayout from '../../layouts/RetroLayout.astro';
+---
+
+<RetroLayout title="User Auth — feature/user-auth :41011">
+  <div class="demo-banner">
+    <div class="demo-banner-left">
+      <span><span class="worktree-tag">feature/user-auth</span></span>
+      <span>web &rarr; <span class="port-tag">:41011</span></span>
+      <span>db &rarr; :41012</span>
+      <span>redis &rarr; :41013</span>
+    </div>
+    <div class="demo-banner-right">
+      <a href="/#concurrent">&larr; back to docktree</a>
+    </div>
+  </div>
+
+  <div class="demo-content">
+    <div class="demo-app">
+      <div class="demo-app-header">
+        <h1>&#9651; Auth</h1>
+        <p>served from worktree <span style="color:var(--amber);">feature/user-auth</span></p>
+      </div>
+
+      <div class="auth-form">
+        <div class="auth-tabs">
+          <button class="auth-tab active" id="tab-login">Sign In</button>
+          <button class="auth-tab" id="tab-signup">Sign Up</button>
+        </div>
+
+        <form id="form-login">
+          <div class="form-group">
+            <label for="login-email">Email</label>
+            <input type="email" id="login-email" placeholder="dev@example.com" required />
+          </div>
+          <div class="form-group">
+            <label for="login-pass">Password</label>
+            <input type="password" id="login-pass" placeholder="&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;" required />
+          </div>
+          <button type="submit" class="btn-submit">Sign In</button>
+        </form>
+
+        <form id="form-signup" style="display:none;">
+          <div class="form-group">
+            <label for="su-name">Name</label>
+            <input type="text" id="su-name" placeholder="Ada Lovelace" required />
+          </div>
+          <div class="form-group">
+            <label for="su-email">Email</label>
+            <input type="email" id="su-email" placeholder="ada@example.com" required />
+          </div>
+          <div class="form-group">
+            <label for="su-pass">Password</label>
+            <input type="password" id="su-pass" placeholder="&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;" required />
+          </div>
+          <button type="submit" class="btn-submit">Create Account</button>
+        </form>
+
+        <div class="auth-status" id="auth-status"></div>
+      </div>
+
+      <div class="auth-toggle" id="auth-toggle">
+        <span id="toggle-text">No account? <a href="#" id="toggle-link">Sign up</a></span>
+      </div>
+
+      <p style="margin-top:32px;text-align:center;font-size:0.78rem;color:var(--text-faint);">
+        This page is isolated from the <a href="/demo/feature-a" style="color:var(--text-dim);">shopping-cart worktree</a> running concurrently on :41001.
+        Separate containers, separate database namespace.
+      </p>
+    </div>
+  </div>
+
+  <script>
+    const loginTab = document.getElementById('tab-login');
+    const signupTab = document.getElementById('tab-signup');
+    const loginForm = document.getElementById('form-login');
+    const signupForm = document.getElementById('form-signup');
+    const toggleText = document.getElementById('toggle-text');
+    const toggleLink = document.getElementById('toggle-link');
+    const status = document.getElementById('auth-status');
+
+    function switchTab(tab) {
+      status.className = 'auth-status';
+      status.style.display = 'none';
+
+      if (tab === 'login') {
+        loginTab.classList.add('active');
+        signupTab.classList.remove('active');
+        loginForm.style.display = 'block';
+        signupForm.style.display = 'none';
+        toggleText.innerHTML = 'No account? <a href="#" id="toggle-link">Sign up</a>';
+      } else {
+        loginTab.classList.remove('active');
+        signupTab.classList.add('active');
+        loginForm.style.display = 'none';
+        signupForm.style.display = 'block';
+        toggleText.innerHTML = 'Have an account? <a href="#" id="toggle-link">Sign in</a>';
+      }
+      document.getElementById('toggle-link').addEventListener('click', (e) => {
+        e.preventDefault();
+        switchTab(tab === 'login' ? 'signup' : 'login');
+      });
+    }
+
+    loginTab.addEventListener('click', () => switchTab('login'));
+    signupTab.addEventListener('click', () => switchTab('signup'));
+    toggleLink.addEventListener('click', (e) => { e.preventDefault(); switchTab('signup'); });
+
+    function showStatus(msg) {
+      status.textContent = msg;
+      status.className = 'auth-status success';
+    }
+
+    loginForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const email = document.getElementById('login-email').value;
+      showStatus('\u2713 Authenticated as ' + email + ' — session stored in worktree-local redis (:41013)');
+    });
+
+    signupForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const name = document.getElementById('su-name').value;
+      showStatus('\u2713 Account created for ' + name + ' — stored in worktree-local db (:41012)');
+    });
+  </script>
+</RetroLayout>

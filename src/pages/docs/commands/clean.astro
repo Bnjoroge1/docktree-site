@@ -1,0 +1,30 @@
+---
+import DocsLayout from '../../../layouts/DocsLayout.astro';
+---
+
+<DocsLayout title="clean" section="commands">
+  <h1>clean</h1>
+  <p class="lead">Remove stale Docktree-managed resources.</p>
+
+  <h2>Usage</h2>
+  <pre><code>docktree clean [flags]</code></pre>
+  <p>Discovers and removes stale or orphaned resources: port allocations, containers, networks, and optionally volumes for worktrees that are missing, gone, or idle (>14 days).</p>
+
+  <h2>Flags</h2>
+  <table>
+    <thead><tr><th>Flag</th><th>Description</th></tr></thead>
+    <tbody>
+      <tr><td><code>--dry-run</code></td><td>Show stale resources without removing them</td></tr>
+      <tr><td><code>--yes</code></td><td>Skip the interactive confirmation prompt (required in non-interactive mode)</td></tr>
+      <tr><td><code>--volumes</code></td><td>Include Docker volumes when discovering and removing stale resources</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Examples</h2>
+  <p>Preview what would be cleaned:</p>
+  <pre><code>docktree clean --dry-run</code></pre>
+  <p>Clean up (with confirmation):</p>
+  <pre><code>docktree clean</code></pre>
+  <p>Clean up including volumes, no prompt:</p>
+  <pre><code>docktree clean --yes --volumes</code></pre>
+</DocsLayout>

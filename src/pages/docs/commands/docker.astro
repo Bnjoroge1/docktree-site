@@ -1,0 +1,22 @@
+---
+import DocsLayout from '../../../layouts/DocsLayout.astro';
+---
+
+<DocsLayout title="docker" section="commands">
+  <h1>docker</h1>
+  <p class="lead">Escape hatch — run any docker compose subcommand with worktree context pre-filled.</p>
+
+  <h2>Usage</h2>
+  <pre><code>docktree docker &lt;subcommand&gt; [args...]</code></pre>
+  <p>The <code>docker</code> command serves as an escape hatch. It allows you to run any raw <code>docker compose</code> subcommand, automatically pre-filling the current worktree's generated project name and active compose files. This is useful for commands, flags, or configurations that Docktree does not wrap directly.</p>
+
+  <h2>Examples</h2>
+  <p>Run a raw compose ps to inspect container details:</p>
+  <pre><code>docktree docker ps</code></pre>
+  <p>Scale a specific service in the current worktree project:</p>
+  <pre><code>docktree docker scale api=3</code></pre>
+  <p>Start a service without its dependencies:</p>
+  <pre><code>docktree docker up --no-deps api</code></pre>
+  <p>Run any Compose command with custom flags:</p>
+  <pre><code>docktree docker config --services</code></pre>
+</DocsLayout>

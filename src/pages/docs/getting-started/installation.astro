@@ -1,0 +1,75 @@
+---
+import DocsLayout from '../../../layouts/DocsLayout.astro';
+---
+
+<DocsLayout title="Installation" section="getting-started">
+  <h1>Installation</h1>
+  <p class="lead">Install Docktree via our installer script or Homebrew.</p>
+
+  <h2>Installer Script (macOS / Linux)</h2>
+  <p>The recommended way to install Docktree is via our installer script:</p>
+
+  <h3>Option A: Run in a subshell (recommended)</h3>
+  <div style="display: flex; align-items: stretch; border: 1px solid var(--border); border-radius: 6px; background: var(--surface); overflow: hidden; margin-bottom: 16px; max-width: 600px;">
+    <code style="flex: 1; padding: 12px 16px; border: none; background: none; color: var(--text); font-family: var(--mono); font-size: 0.85rem; overflow-x: auto; white-space: nowrap;" id="doc-install-sh-cmd">curl -fsSL https://docktree.dev/install.sh | sh</code>
+    <button class="copy-btn" id="doc-copy-sh-btn" style="border: none; border-left: 1px solid var(--border); background: var(--surface-2); color: var(--text-dim); padding: 0 16px; cursor: pointer; font-family: var(--mono); font-size: 0.72rem;">copy</button>
+  </div>
+
+  <h3>Option B: Evaluate in current shell (modifies PATH immediately)</h3>
+  <div style="display: flex; align-items: stretch; border: 1px solid var(--border); border-radius: 6px; background: var(--surface); overflow: hidden; margin-bottom: 24px; max-width: 600px;">
+    <code style="flex: 1; padding: 12px 16px; border: none; background: none; color: var(--text); font-family: var(--mono); font-size: 0.85rem; overflow-x: auto; white-space: nowrap;" id="doc-install-eval-cmd">eval "$(curl -fsSL https://docktree.dev/install.sh)"</code>
+    <button class="copy-btn" id="doc-copy-eval-btn" style="border: none; border-left: 1px solid var(--border); background: var(--surface-2); color: var(--text-dim); padding: 0 16px; cursor: pointer; font-family: var(--mono); font-size: 0.72rem;">copy</button>
+  </div>
+
+  <h2>Homebrew (macOS / Linux)</h2>
+  <p>Alternatively, you can tap and install via Homebrew. Note that Homebrew 4.4+ requires trusting unsigned custom taps:</p>
+  <pre><code>brew tap Bnjoroge1/tap
+brew trust Bnjoroge1/tap
+brew install docktree</code></pre>
+
+  <h2>Verify the installation</h2>
+  <pre><code>docktree --version</code></pre>
+
+  <h2>AI Agent Skills</h2>
+  <p>If you use AI coding agents (such as Claude Code, Codex, Cursor, OpenCode, or OMP/Pi), you can install Docktree skills to teach them how to drive the Docktree CLI (e.g. using the <code>--json</code> flag, handling errors, and managing worktree lifetimes):</p>
+  <div style="display: flex; align-items: stretch; border: 1px solid var(--border); border-radius: 6px; background: var(--surface); overflow: hidden; margin-bottom: 16px; max-width: 600px;">
+    <code style="flex: 1; padding: 12px 16px; border: none; background: none; color: var(--text); font-family: var(--mono); font-size: 0.85rem; overflow-x: auto; white-space: nowrap;" id="doc-skills-cmd">npx skills add Bnjoroge1/Docktree</code>
+    <button class="copy-btn" id="doc-copy-skills-btn" style="border: none; border-left: 1px solid var(--border); background: var(--surface-2); color: var(--text-dim); padding: 0 16px; cursor: pointer; font-family: var(--mono); font-size: 0.72rem;">copy</button>
+  </div>
+  <p><strong>Note:</strong> Under the hood, these are standard Docker containers at the end of the day. Because Docktree delegates directly to the standard Docker engine, all existing tools, agent diagnostics, and container inspect tasks your agents are already familiar with will work seamlessly.</p>
+
+  <p>To install globally for a specific agent (e.g. Claude Code):</p>
+  <pre><code>npx skills add Bnjoroge1/Docktree -g -a claude-code</code></pre>
+
+  <h2>Prerequisites</h2>
+  <ul>
+    <li><strong>Docker</strong> with the Compose plugin (<code>docker compose</code> must be available) running on a daemon such as <strong>Docker Desktop</strong>, <strong>OrbStack</strong>, or <strong>Colima</strong></li>
+    <li><strong>Git</strong> (worktree support is built-in)</li>
+    <li>A project using Docker Compose with a <code>docker-compose.yml</code> or <code>compose.yml</code></li>
+  </ul>
+
+  <h2>Next steps</h2>
+  <p>Read the <a href="/docs/getting-started/quickstart">quick start guide</a> to spin up your first worktree stack.</p>
+
+  <script is:inline>
+    function setupCopyButton(btnId, cmdId) {
+      const btn = document.getElementById(btnId);
+      const cmd = document.getElementById(cmdId);
+      if (!btn || !cmd) return;
+      btn.addEventListener('click', () => {
+        navigator.clipboard.writeText(cmd.textContent).then(() => {
+          btn.textContent = 'copied!';
+          btn.style.color = 'var(--green)';
+          setTimeout(() => {
+            btn.textContent = 'copy';
+            btn.style.color = 'var(--text-dim)';
+          }, 2000);
+        });
+      });
+    }
+
+    setupCopyButton('doc-copy-sh-btn', 'doc-install-sh-cmd');
+    setupCopyButton('doc-copy-eval-btn', 'doc-install-eval-cmd');
+    setupCopyButton('doc-copy-skills-btn', 'doc-skills-cmd');
+  </script>
+</DocsLayout>

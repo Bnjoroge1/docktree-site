@@ -1,0 +1,16 @@
+---
+import DocsLayout from '../../../layouts/DocsLayout.astro';
+---
+
+<DocsLayout title="prepare" section="commands">
+  <h1>prepare</h1>
+  <p class="lead">Prepare the current worktree's local Docker setup.</p>
+
+  <h2>Usage</h2>
+  <pre><code>docktree prepare</code></pre>
+  <p>Runs the setup steps (copy, symlink, run) from <code>docktree.yml</code> for the current worktree without creating a new one. Useful when you've manually added a worktree with <code>git worktree add</code> and need to set up its local environment.</p>
+
+  <h2>Example</h2>
+  <pre><code>cd ../myproject.worktrees/feature/dark-mode
+docktree prepare</code></pre>
+</DocsLayout>

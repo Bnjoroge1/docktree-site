@@ -1,0 +1,41 @@
+---
+import DocsLayout from '../../layouts/DocsLayout.astro';
+
+const sections = [
+  { title: 'Overview', href: '/docs/about/overview', desc: 'What Docktree is and how it works.' },
+  { title: 'Architecture & Design', href: '/docs/architecture/design', desc: 'Detailed look at Docktree architecture, platform tier, and database tenancy.' },
+  { title: 'Installation', href: '/docs/getting-started/installation', desc: 'Install Docktree via Homebrew or download the binary directly.' },
+  { title: 'Quick Start', href: '/docs/getting-started/quickstart', desc: 'Spin up two worktree stacks running concurrently in under a minute.' },
+  { title: 'Integrations', href: '/docs/integrations/setup', desc: 'How to integrate Docktree with your AI agents, CI/CD pipelines, and git worktree managers.' },
+  { title: 'up', href: '/docs/commands/up', desc: "Start the current worktree's Compose project." },
+  { title: 'down', href: '/docs/commands/down', desc: "Stop the current worktree's Compose project." },
+ { title: 'stop', href: '/docs/commands/stop', desc: 'Stop running containers without removing them.' },
+  { title: 'status', href: '/docs/commands/status', desc: 'Show managed worktree services.' },
+  { title: 'ports', href: '/docs/commands/ports', desc: 'Show allocated host ports.' },
+ { title: 'volumes', href: '/docs/commands/volumes', desc: 'Show Docktree-managed volumes.' },
+  { title: 'create', href: '/docs/commands/create', desc: 'Create a worktree and prepare its local Docker setup.' },
+  { title: 'prepare', href: '/docs/commands/prepare', desc: "Prepare the current worktree's local Docker setup." },
+  { title: 'sync', href: '/docs/commands/sync', desc: 'Sync setup.copy files to all worktrees.' },
+  { title: 'clean', href: '/docs/commands/clean', desc: 'Remove stale Docktree-managed resources.' },
+  { title: 'platform', href: '/docs/commands/platform', desc: 'Manage the repo-scoped shared services platform.' },
+ { title: 'proxy', href: '/docs/commands/proxy', desc: 'Reverse proxy routing by hostname to worktree ports.' },
+ { title: 'tunnel', href: '/docs/commands/tunnel', desc: 'Expose worktrees externally via Cloudflare Tunnel or ngrok.' },
+ { title: 'init', href: '/docs/commands/init', desc: 'Generate a docktree.yml from your compose files.' },
+ { title: 'docker', href: '/docs/commands/docker', desc: 'Run any docker compose subcommand with worktree context pre-filled.' },
+  { title: 'docktree.yml', href: '/docs/configuration/docktree-yml', desc: 'Configuration reference for docktree.yml.' },
+];
+---
+
+<DocsLayout title="Documentation" section="index">
+  <h1>Documentation</h1>
+  <p class="lead">Learn how to install Docktree, manage worktree Compose stacks, and configure shared services.</p>
+
+  <div class="docs-index-grid">
+    {sections.map(s => (
+      <a href={s.href} class="docs-index-card">
+        <h3>{s.title}</h3>
+        <p>{s.desc}</p>
+      </a>
+    ))}
+  </div>
+</DocsLayout>

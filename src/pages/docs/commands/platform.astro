@@ -1,0 +1,42 @@
+---
+import DocsLayout from '../../../layouts/DocsLayout.astro';
+---
+
+<DocsLayout title="platform" section="commands">
+  <h1>platform</h1>
+  <p class="lead">Manage the repo-scoped shared services platform.</p>
+
+  <h2>Usage</h2>
+  <pre><code>docktree platform &lt;subcommand&gt;</code></pre>
+  <p>Manages the "platform tier" — shared services declared in <code>shared.services</code> of <code>docktree.yml</code> that run once and serve all worktrees (e.g., a shared Postgres with per-database tenancy).</p>
+
+  <h2>Subcommands</h2>
+  <table>
+    <thead><tr><th>Subcommand</th><th>Description</th></tr></thead>
+    <tbody>
+      <tr><td><code>up</code></td><td>Start the repo-scoped platform stack (must be run from main repo root)</td></tr>
+      <tr><td><code>down</code></td><td>Stop the repo-scoped platform stack (preserves data)</td></tr>
+      <tr><td><code>status</code></td><td>Show platform stack state (running or not)</td></tr>
+      <tr><td><code>tenants</code></td><td>List tenant databases across all instances</td></tr>
+      <tr><td><code>logs</code></td><td>Stream platform service logs (pass service name to filter)</td></tr>
+      <tr><td><code>clean</code></td><td>Stop platform, drop ALL tenant DBs, remove network. <strong>Destructive.</strong></td></tr>
+    </tbody>
+  </table>
+
+  <h2>platform clean flags</h2>
+  <table>
+    <thead><tr><th>Flag</th><th>Description</th></tr></thead>
+    <tbody>
+      <tr><td><code>-y, --yes</code></td><td>Skip confirmation (required in non-interactive mode)</td></tr>
+      <tr><td><code>--dry-run</code></td><td>Show what would be dropped without making changes</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Examples</h2>
+  <p>Start the shared platform:</p>
+  <pre><code>docktree platform up</code></pre>
+  <p>List tenant databases:</p>
+  <pre><code>docktree platform tenants</code></pre>
+  <p>Stream logs for a specific service:</p>
+  <pre><code>docktree platform logs postgres</code></pre>
+</DocsLayout>

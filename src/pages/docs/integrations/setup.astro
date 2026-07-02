@@ -1,0 +1,71 @@
+---
+import DocsLayout from '../../../layouts/DocsLayout.astro';
+---
+
+<DocsLayout title="Integrations" section="integrations">
+  <h1>Integrations</h1>
+  <p class="lead">How to integrate Docktree with your AI agents, development environments, and git worktree managers.</p>
+
+  <h2>AI Agents & Coding Environments</h2>
+  <p>Docktree is designed to be agent-native. It helps coding agents (such as Claude Code, Codex, Cursor, or OpenCode) spin up and manage development stacks independently without user intervention or manual setup.</p>
+  
+  <h3>1. Installing Agent Skills</h3>
+  <p>Docktree publishes pre-packaged skills that teach agents how to drive the CLI correctly (such as handling lifecycle states and error codes). Install these skills in your workspace:</p>
+  <pre><code>npx skills add Bnjoroge1/Docktree</code></pre>
+
+  <h3>2. Programmatic Execution (`--json`)</h3>
+  <p>When scripting agent tools or automated workflows, prefix your commands with the global <code>--json</code> flag. This instructs Docktree to emit structured, machine-readable JSON output on stdout and format errors as JSON objects, bypassing human-readable TUI rendering:</p>
+  <pre><code># Programmatically check active worktree port allocations
+docktree --json ports --all
+
+# Programmatically start a worktree and parse metadata
+docktree --json up</code></pre>
+
+  <h2>Git Worktree Managers & CLI Tooling</h2>
+  <p>If you use Git worktree helper tools or custom scripts to manage your branches, Docktree can hook directly into your branch creation lifecycle.</p>
+  
+  <h3>One-Command Worktree & Stack Provisioning</h3>
+  <p>Instead of manually running <code>git worktree add</code>, copying environment files, running install scripts, and launching docker compose, you can delegate the entire flow to Docktree:</p>
+  <pre><code>docktree up --create feature/login --sync</code></pre>
+  <p>This single command tells Docktree to:</p>
+  <ol>
+    <li>Create a git worktree at the configured root (e.g. <code>../myrepo.worktrees/feature-login</code>).</li>
+    <li>Sync and prepare the workspace using the steps defined in <code>docktree.yml</code> (copying <code>.env</code> files, symlinking <code>node_modules</code>, and running dependency installations).</li>
+    <li>Allocate unique ports and start the container stack in detached mode.</li>
+  </ol>
+
+  <h3>Complementary Integration with Worktree Orchestrators (Worktrunk, Conductor, Orca)</h3>
+  <p>If you or your team uses dedicated git worktree managers or parallel workspace orchestrators like <strong>Worktrunk (wt)</strong>, <strong>Conductor</strong>, or <strong>Orca</strong> to run parallel AI agents (like Claude Code or Codex) or manage developer checkouts:</p>
+  <p><strong>Docktree is 100% complementary.</strong> While orchestrators automate the Git worktree creation and workspace-switching lifecycle, Docktree automates the local Docker container isolation and port routing lifecycle. They work hand-in-hand:</p>
+  <ul>
+    <li><strong>Worktree Orchestrator:</strong> Spawns the worktree, switches directories, and handles agent dispatch.</li>
+    <li><strong>Docktree:</strong> Runs inside the orchestrator's setup/checkout hooks to automatically spin up a collision-free container stack.</li>
+  </ul>
+  
+  <h4>Worktrunk (<code>wt.toml</code>) Example</h4>
+  <p>If you use <strong>Worktrunk (wt)</strong>, you can define a <code>post-create</code> hook in your <code>wt.toml</code> configuration to boot the Docktree stack automatically whenever a new worktree is created:</p>
+  <pre><code>[hooks]
+post-create = "docktree up --sync"</code></pre>
+  <p>With this hook, running <code>wt switch --create feature-a</code> will check out the branch, copy your ignored files, symlink dependencies, allocate ports, and start your Docker containers in one seamless step. You can add the same setup command (<code>docktree up --sync</code>) to Conductor or Orca workspace hooks to have them automatically spin up isolated container stacks for new workspaces.</p>
+
+  <h2>CI/CD Pipelines (GitHub Actions, GitLab, Jenkins)</h2>
+  <p>Running Docker Compose in parallel CI environments often leads to port and volume conflicts. You can integrate Docktree into your CI workflow to run test suites concurrently on a single runner machine.</p>
+
+  <p>For persistent, self-hosted CI runners where multiple jobs execute concurrently on the same host machine, Docktree automatically prevents port and container collisions. Since all jobs run under the same host user, they share a machine-wide port registry (stored in <code>~/.config/docktree/ports.json</code>) and dynamically allocate free ports on the fly, allowing parallel test runs to execute in complete isolation without interference.</p>
+
+  <h3>GitHub Actions Example</h3>
+  <p>Save the following step configuration in your test workflow to run parallel Docker containers cleanly:</p>
+  <pre><code>- name: Install Docktree
+  run: curl -fsSL https://docktree.dev/install.sh | sh
+
+- name: Start isolated container stack
+  run: docktree up --sync --validate
+
+- name: Run test suite
+  run: npm run test:e2e
+
+- name: Teardown and cleanup
+  if: always()
+  run: docktree down -v</code></pre>
+  <p>Using the <code>-v</code> flag on teardown ensures that all dynamically created Docker volumes and databases are completely pruned, preventing disk bloat on the runner machine.</p>
+</DocsLayout>

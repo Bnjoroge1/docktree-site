@@ -1,0 +1,94 @@
+---
+import DocsLayout from '../../../layouts/DocsLayout.astro';
+
+const yamlExample = `compose:
+  files:
+    - docker-compose.yml
+
+worktrees:
+  root: "../\${repo}.worktrees"
+
+setup:
+  copy:
+    - .env
+  symlink:
+    - node_modules
+  run:
+    - echo "worktree ready"
+
+shared:
+  services:
+    postgres:
+      kind: postgres
+      tenancy: per_database
+
+volumes:
+  share:
+    - shared_data
+
+ports:
+  bind_host: 127.0.0.1
+  range: 41000-49999
+
+state:
+  directory: .docktree
+
+transforms:
+  container_name: strip
+  built_image: rewrite
+  docker_socket: warn
+
+proxy:
+  port: 8320
+  host: 127.0.0.1
+  tld: localhost
+
+tunnel:
+  provider: cloudflare
+  port: 0`;
+
+const rootDefault = '../${repo}.worktrees';
+const rootDesc = 'Where new worktrees are created (supports ${repo}, ${branch}, ${branch_slug})';
+---
+
+<DocsLayout title="docktree.yml" section="configuration">
+  <h1>docktree.yml</h1>
+  <p class="lead">Configuration reference for docktree.yml.</p>
+
+  <p>Docktree works with zero configuration — sensible defaults are provided. Create a <code>docktree.yml</code> in your repo root to customize behavior.</p>
+
+  <h2>Full example</h2>
+  <pre><code set:html={yamlExample}></code></pre>
+
+  <h2>Reference</h2>
+  <table>
+    <thead><tr><th>Section</th><th>Key</th><th>Default</th><th>Purpose</th></tr></thead>
+    <tbody>
+      <tr><td><code>compose.files</code></td><td>—</td><td>auto-detected</td><td>Explicit compose file list</td></tr>
+      <tr><td><code>worktrees.root</code></td><td>—</td><td><code set:html={rootDefault}></code></td><td set:html={rootDesc}></td></tr>
+      <tr><td><code>setup.copy</code></td><td>—</td><td><code>[".env"]</code></td><td>Files copied from main repo to each worktree</td></tr>
+      <tr><td><code>setup.symlink</code></td><td>—</td><td><code>["node_modules"]</code></td><td>Symlinks created in worktrees pointing to main repo</td></tr>
+      <tr><td><code>setup.run</code></td><td>—</td><td>—</td><td>Shell commands run during setup</td></tr>
+      <tr><td><code>shared.services</code></td><td>—</td><td>—</td><td>Platform-tier shared services (kind: postgres/mysql/mongodb/redis/s3/generic; tenancy: per_database/full_share)</td></tr>
+      <tr><td><code>volumes.share</code></td><td>—</td><td>—</td><td>Volumes shared across all worktrees</td></tr>
+      <tr><td><code>ports.bind_host</code></td><td>—</td><td><code>127.0.0.1</code></td><td>Host interface for port bindings</td></tr>
+      <tr><td><code>ports.range</code></td><td>—</td><td><code>41000-49999</code></td><td>Port allocation range</td></tr>
+      <tr><td><code>state.directory</code></td><td>—</td><td><code>.docktree</code></td><td>Where Docktree stores instance state</td></tr>
+      <tr><td><code>transforms.*</code></td><td>—</td><td>strip/rewrite/warn</td><td>How container names, built images, docker sockets are transformed</td></tr>
+     <tr><td><code>proxy.port</code></td><td>—</td><td><code>8320</code></td><td>Reverse proxy listen port</td></tr>
+     <tr><td><code>proxy.host</code></td><td>—</td><td><code>127.0.0.1</code></td><td>Reverse proxy listen host</td></tr>
+     <tr><td><code>proxy.tld</code></td><td>—</td><td><code>localhost</code></td><td>Top-level domain for routing (e.g. <code>localhost</code>, <code>test</code>)</td></tr>
+     <tr><td><code>tunnel.provider</code></td><td>—</td><td><code>cloudflare</code></td><td>Default tunnel provider (<code>cloudflare</code> or <code>ngrok</code>)</td></tr>
+     <tr><td><code>tunnel.port</code></td><td>—</td><td><code>0</code></td><td>Default local port to tunnel (0 dynamically detects first HTTP port)</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Shared services</h2>
+  <p>Shared services run once at the platform tier and serve all worktrees. Supported kinds: <code>postgres</code>, <code>mysql</code>, <code>mongodb</code>, <code>redis</code>, <code>s3</code>, <code>generic</code>.</p>
+  <p>Tenancy modes:</p>
+  <ul>
+    <li><code>per_database</code> — each worktree gets its own database namespace within a shared instance</li>
+    <li><code>full_share</code> — all worktrees share the same data</li>
+  </ul>
+  <p>See the <a href="/docs/commands/platform">platform command</a> for managing the platform stack.</p>
+</DocsLayout>

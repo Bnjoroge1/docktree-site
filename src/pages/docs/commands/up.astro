@@ -1,0 +1,34 @@
+---
+import DocsLayout from '../../../layouts/DocsLayout.astro';
+---
+
+<DocsLayout title="up" section="commands">
+  <h1>up</h1>
+  <p class="lead">Start the current worktree's Compose project.</p>
+
+  <h2>Usage</h2>
+  <pre><code>docktree up [flags]</code></pre>
+  <p>Starts the current worktree's Compose project. Docktree detects compose files, allocates unique ports, generates override files, and runs <code>docker compose up -d</code>.</p>
+
+  <h2>Flags</h2>
+  <table>
+    <thead><tr><th>Flag</th><th>Description</th></tr></thead>
+    <tbody>
+      <tr><td><code>-f, --file &lt;path&gt;</code></td><td>Use a specific Compose file instead of auto-detected ones</td></tr>
+      <tr><td><code>--build</code></td><td>Force rebuild of images with a <code>build:</code> directive</td></tr>
+      <tr><td><code>--create &lt;branch&gt;</code></td><td>Create and prepare a new worktree before starting</td></tr>
+      <tr><td><code>--sync</code></td><td>Run setup copy/symlink/run steps before starting</td></tr>
+      <tr><td><code>--validate</code></td><td>Check config, ports, and compose validity without starting</td></tr>
+      <tr><td><code>--dry-run</code></td><td>Show what would happen without making changes</td></tr>
+    </tbody>
+  </table>
+  <p><code>--validate</code> and <code>--dry-run</code> are mutually exclusive.</p>
+
+  <h2>Examples</h2>
+  <p>Create a new worktree and start its stack:</p>
+  <pre><code>docktree up --create feature/payment-gateway</code></pre>
+  <p>Force rebuild and sync setup files:</p>
+  <pre><code>docktree up --build --sync</code></pre>
+  <p>Validate without starting:</p>
+  <pre><code>docktree up --validate</code></pre>
+</DocsLayout>

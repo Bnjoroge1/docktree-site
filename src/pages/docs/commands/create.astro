@@ -1,0 +1,24 @@
+---
+import DocsLayout from '../../../layouts/DocsLayout.astro';
+---
+
+<DocsLayout title="create" section="commands">
+  <h1>create</h1>
+  <p class="lead">Create a worktree and prepare its local Docker setup.</p>
+
+  <h2>Usage</h2>
+  <pre><code>docktree create &lt;branch&gt;</code></pre>
+  <p>Runs <code>git worktree add -b &lt;branch&gt;</code> and then runs setup steps (copy files, create symlinks, run commands) from <code>docktree.yml</code>.</p>
+
+  <h2>Arguments</h2>
+  <table>
+    <thead><tr><th>Arg</th><th>Description</th></tr></thead>
+    <tbody>
+      <tr><td><code>&lt;branch&gt;</code></td><td>The branch name for the new worktree (required)</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Example</h2>
+  <pre><code>docktree create feature/dark-mode</code></pre>
+  <p>This is equivalent to running <code>docktree prepare</code> after <code>git worktree add</code>. To start the stack after creating, use <code>docktree up --create &lt;branch&gt;</code> instead.</p>
+</DocsLayout>

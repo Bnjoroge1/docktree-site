@@ -1,0 +1,36 @@
+---
+import DocsLayout from '../../../layouts/DocsLayout.astro';
+---
+
+<DocsLayout title="stop" section="commands">
+  <h1>stop</h1>
+  <p class="lead">Stop running containers of the current worktree without removing them.</p>
+
+  <h2>Usage</h2>
+  <pre><code>docktree stop [options] [service...]</code></pre>
+  <p>The <code>stop</code> command stops the running containers of the current worktree's Compose project. Unlike <code>down</code>, it does not remove the containers or networks — it simply halts them, preserving their state for a quick restart.</p>
+
+  <h2>Flags</h2>
+  <table>
+    <thead><tr><th>Flag</th><th>Description</th></tr></thead>
+    <tbody>
+      <tr><td><code>--dry-run</code></td><td>Show what would be stopped without making any changes</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Arguments</h2>
+  <table>
+    <thead><tr><th>Argument</th><th>Description</th></tr></thead>
+    <tbody>
+      <tr><td><code>service...</code></td><td>Optional name of one or more specific services to stop (stops all by default)</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Examples</h2>
+  <p>Stop all services in the current worktree:</p>
+  <pre><code>docktree stop</code></pre>
+  <p>Stop only the <code>api</code> and <code>worker</code> services:</p>
+  <pre><code>docktree stop api worker</code></pre>
+  <p>Preview which containers would be stopped:</p>
+  <pre><code>docktree stop --dry-run</code></pre>
+</DocsLayout>

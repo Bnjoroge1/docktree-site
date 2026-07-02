@@ -1,0 +1,74 @@
+---
+import RetroLayout from '../../layouts/RetroLayout.astro';
+
+const products = [
+  { name: 'Mechanical Keyboard', price: 129 },
+  { name: 'USB-C Hub', price: 39 },
+  { name: '4K Monitor', price: 349 },
+  { name: 'Desk Lamp', price: 59 },
+  { name: 'Webcam', price: 89 },
+];
+---
+
+<RetroLayout title="Shopping Cart — feature/shopping-cart :41001">
+  <div class="demo-banner">
+    <div class="demo-banner-left">
+      <span><span class="worktree-tag">feature/shopping-cart</span></span>
+      <span>web &rarr; <span class="port-tag">:41001</span></span>
+      <span>db &rarr; :41002</span>
+      <span>redis &rarr; :41003</span>
+    </div>
+    <div class="demo-banner-right">
+      <a href="/#concurrent">&larr; back to docktree</a>
+    </div>
+  </div>
+
+  <div class="demo-content">
+    <div class="demo-app">
+      <div class="demo-app-header">
+        <h1>&#9651; Shop</h1>
+        <p>served from worktree <span style="color:var(--amber);">feature/shopping-cart</span></p>
+      </div>
+
+      <div class="product-list" id="product-list">
+        {products.map(p => (
+          <div class="product-item">
+            <div class="product-info">
+              <span class="product-name">{p.name}</span>
+              <span class="product-price">${p.price.toFixed(2)}</span>
+            </div>
+            <button class="btn-add" data-name={p.name} data-price={p.price}>Add</button>
+          </div>
+        ))}
+      </div>
+
+      <div class="cart-summary">
+        <span class="total">Cart total (<span id="item-count">0</span> items)</span>
+        <span class="amount" id="cart-total">$0.00</span>
+      </div>
+
+      <p style="margin-top:32px;text-align:center;font-size:0.78rem;color:var(--text-faint);">
+        This page is isolated from the <a href="/demo/feature-b" style="color:var(--text-dim);">user-auth worktree</a> running concurrently on :41011.
+        Separate containers, separate database namespace.
+      </p>
+    </div>
+  </div>
+
+  <script>
+    let total = 0;
+    let count = 0;
+
+    document.querySelectorAll('.btn-add').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const price = parseFloat(btn.dataset.price);
+        total += price;
+        count++;
+        document.getElementById('cart-total').textContent = '$' + total.toFixed(2);
+        document.getElementById('item-count').textContent = count;
+        btn.textContent = 'Added';
+        btn.classList.add('added');
+        btn.disabled = true;
+      });
+    });
+  </script>
+</RetroLayout>

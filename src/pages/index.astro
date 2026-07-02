@@ -1,0 +1,613 @@
+---
+import RetroLayout from '../layouts/RetroLayout.astro';
+
+const commands = [
+  { name: 'up', sig: 'docktree up [flags]', desc: "Start the current worktree's Compose project. Allocates unique ports, generates override files, runs docker compose up -d.", flags: ['--create <branch>', '--build', '--sync', '--validate', '--dry-run'] },
+  { name: 'down', sig: 'docktree down [service...] [flags]', desc: "Stop the current worktree's project. Optionally drop volumes and tenant databases, or apply across all worktrees.", flags: ['-v, --volumes', '-a, --all', '--dry-run'] },
+  { name: 'stop', sig: 'docktree stop [service...] [flags]', desc: "Stop running containers of the current worktree without removing them.", flags: ['--dry-run'] },
+  { name: 'status', sig: 'docktree status [flags]', desc: "Show container state for the current worktree's project. Use --all to see every worktree at once.", flags: ['-a, --all'] },
+  { name: 'ports', sig: 'docktree ports [flags]', desc: 'Display the host ports allocated for each service in the current worktree, read from the port registry.', flags: ['-a, --all'] },
+  { name: 'volumes', sig: 'docktree volumes [flags]', desc: 'List Docktree-managed volumes and their backing Docker volumes.', flags: ['-a, --all'] },
+  { name: 'create', sig: 'docktree create <branch>', desc: 'Create a new git worktree and prepare its local Docker setup — copy files, create symlinks, run setup commands.', flags: ['<branch>'] },
+  { name: 'sync', sig: 'docktree sync [flags]', desc: "Copy files declared in setup.copy from the main repo to all worktrees where they're stale. Skips running worktrees.", flags: ['--force', '--dry-run'] },
+  { name: 'clean', sig: 'docktree clean [flags]', desc: 'Discover and remove stale resources — port allocations, containers, networks, and optionally volumes for gone or idle worktrees.', flags: ['--volumes', '--yes', '--dry-run'] },
+  { name: 'platform', sig: 'docktree platform <sub>', desc: 'Manage the repo-scoped shared services platform. Shared databases run once and give each worktree its own tenant namespace.', flags: ['up', 'down', 'status', 'tenants', 'logs', 'clean'] },
+  { name: 'proxy', sig: 'docktree proxy [flags]', desc: 'Start a reverse proxy that routes by hostname (e.g., http://<instance>.localhost) to worktree ports.', flags: ['--port <port>', '--host <host>'] },
+  { name: 'tunnel', sig: 'docktree tunnel <action> [flags]', desc: 'Expose a worktree externally via a tunnel provider (Cloudflare Tunnel or ngrok) for easy sharing.', flags: ['start', 'stop', 'status', 'list'] },
+  { name: 'init', sig: 'docktree init [flags]', desc: 'Scan compose files and walk through generating a custom docktree.yml configuration.', flags: ['--dry-run', '--force', '--apply'] },
+  { name: 'docker', sig: 'docktree docker <sub> [args...]', desc: 'Escape hatch — run any docker compose subcommand with the current worktree\'s project name and compose files pre-filled.', flags: ['<subcommand>'] },
+];
+
+const products = [
+  { name: 'Mechanical Keyboard', price: 129 },
+  { name: 'USB-C Hub', price: 39 },
+  { name: '4K Monitor', price: 349 },
+  { name: 'Desk Lamp', price: 59 },
+  { name: 'Webcam', price: 89 },
+];
+---
+
+<RetroLayout title="Docktree — Docker Compose across git worktrees" description="Run Docker Compose services across multiple git worktrees without port conflicts. Each branch gets its own ports, containers, and database namespace — allocated automatically.">
+  <!-- Nav -->
+  <nav class="nav">
+    <div class="nav-inner">
+      <a href="/" class="nav-brand">
+        <span class="tree">&#9651;</span> docktree
+        <span class="nav-version">v0.4.0</span>
+      </a>
+      <div class="nav-links">
+        <a href="/#features">Features</a>
+        <a href="/docs/getting-started/installation">Docs</a>
+        <a href="https://github.com/Bnjoroge1/Docktree" class="btn btn-ghost" style="padding:6px 16px;font-size:0.8rem;">GitHub</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Hero -->
+  <header class="hero">
+    <div class="container">
+      <pre class="ascii-logo">    ____             __     ___           __       
+   / __ \____ ______/ /_   /   |  _______/ /____  __
+  / / / / __ `/ ___/ __/  / /| | / ___/ __  / _ \/ /
+ / /_/ / /_/ / /  / /_   / ___ |/ /  / /_/ /  __/ / 
+/_____/\__,_/_/   \__/  /_/  |_/_/   \__,_/\___/_/  </pre>
+
+      <h1 class="hero-title">Docker Compose across <span class="accent">git worktrees</span></h1>
+      <p class="hero-subtitle">
+        Each branch runs its own isolated stack with ports, containers, and database
+        namespaces allocated automatically from a managed pool. No collisions,
+        no manual port juggling, no stepping on your teammates' running services.
+      </p>
+
+      <!-- Install Bar -->
+      <div class="install-bar-container" style="display: flex; flex-direction: column; gap: 16px; align-items: center; max-width: 680px; margin: 0 auto 48px;">
+        <div class="install-bar" style="width: 100%; margin: 0; display: flex; gap: 12px; align-items: stretch;">
+          <div class="install-cmd-wrap" style="flex: 1;">
+            <span class="dollar">$</span>
+            <span class="cmd-text" id="install-cmd">curl -fsSL https://docktree.dev/install.sh | sh</span>
+            <button class="copy-btn" id="copy-btn" aria-label="Copy install command">
+              <span id="copy-text">copy</span>
+            </button>
+          </div>
+          <a href="/docs/getting-started/installation" class="docs-btn">
+            Docs &rarr;
+          </a>
+        </div>
+        <div class="install-bar" style="width: 100%; margin: 0; display: flex; gap: 12px; align-items: stretch;">
+          <div class="install-cmd-wrap" style="flex: 1;">
+            <span class="dollar">$</span>
+            <span class="cmd-text" id="install-skills-cmd">npx skills add Bnjoroge1/Docktree</span>
+            <button class="copy-btn" id="copy-skills-btn" aria-label="Copy skills command">
+              <span id="copy-skills-text">copy</span>
+            </button>
+          </div>
+          <a href="/docs/getting-started/installation#ai-agent-skills" class="docs-btn" style="visibility: hidden; pointer-events: none;">
+            Docs &rarr;
+          </a>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Use cases -->
+  <section id="use-cases" class="section">
+    <div class="container">
+      <div class="section-label">// use cases</div>
+      <h2 class="section-title">Built for modern local development</h2>
+      <p class="section-desc">
+        Docktree enables workflows that were previously painful or impossible when running a single Docker Compose instance &mdash; <strong>all with zero modifications to your existing compose files</strong>.
+      </p>
+
+      <div class="command-grid">
+          <div class="cmd-card">
+            <div class="cmd-header">
+            <span class="cmd-name">Parallel AI Agents</span>
+          </div>
+          <p class="cmd-desc">
+            Run multiple coding agents in separate worktrees without port, container, volume, or database collisions. Each agent gets its own isolated Compose stack.
+          </p>
+          </div>
+
+          <div class="cmd-card">
+            <div class="cmd-header">
+            <span class="cmd-name">Review Multiple PRs Locally</span>
+          </div>
+          <p class="cmd-desc">
+            Check out several pull requests as worktrees and run them side by side. Compare UI, API behavior, and database changes without constantly tearing stacks down.
+          </p>
+          </div>
+
+          <div class="cmd-card">
+            <div class="cmd-header">
+            <span class="cmd-name">E2E Testing in CI & Local</span>
+          </div>
+          <p class="cmd-desc">
+            Run end-to-end test suites against multiple feature branches concurrently. Because each branch gets its own database schema and isolated port bindings, tests will never collide or taint shared state.
+      </p>
+            </div>
+
+          <div class="cmd-card">
+            <div class="cmd-header">
+            <span class="cmd-name">External Sharing & Preview</span>
+          </div>
+          <p class="cmd-desc">
+            Expose any local worktree stack externally using <code>docktree tunnel</code>. Share your running feature branch live with product managers, developers, or clients for reviews, without configuring port forwarding.
+      </p>
+            </div>
+
+          <div class="cmd-card">
+            <div class="cmd-header">
+            <span class="cmd-name">Multi-Branch Development</span>
+          </div>
+          <p class="cmd-desc">
+            Compare frontend changes, debug API integration issues, or work on hotfixes in a separate git worktree without having to tear down, rebuild, and restart your main development container stack.
+          </p>
+          </div>
+
+          <div class="cmd-card">
+            <div class="cmd-header">
+            <span class="cmd-name">Tenant Database Isolation</span>
+          </div>
+          <p class="cmd-desc">
+            Share heavy infra like databases or message brokers once at the <code>platform</code> tier, while automatically provisioning clean, isolated tenant namespaces or database schemas for every git worktree.
+          </p>
+      </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Two Features (inline, interactive) -->
+  <section id="features" class="section" style="border-top:1px solid var(--border);">
+    <div class="container">
+      <div class="section-label">// concurrent</div>
+      <p class="section-desc">
+        Both apps below are running simultaneously in separate worktrees.
+        Each has its own URL, its own containers, and its own database namespace.
+      </p>
+
+      <div class="demo-badge">
+        <span class="pulse"></span>
+        2 worktrees running concurrently
+      </div>
+
+      <div class="features-inline">
+        <!-- Shopping Cart -->
+        <div class="feature-panel">
+          <div class="feature-url-bar">
+            <div class="dots">
+              <span class="dot dot-red"></span>
+              <span class="dot dot-amber"></span>
+              <span class="dot dot-green"></span>
+            </div>
+            <span class="url">shopping-cart.docktree.local</span>
+          </div>
+          <div class="feature-body">
+            <h3>&#9651; Shop</h3>
+            <p class="feature-sub">worktree: feature/shopping-cart</p>
+
+            <div class="product-list" id="inline-products">
+              {products.map(p => (
+                <div class="product-item">
+                  <div class="product-info">
+                    <span class="product-name">{p.name}</span>
+                    <span class="product-price">${p.price.toFixed(2)}</span>
+                  </div>
+                  <button class="btn-add" data-name={p.name} data-price={p.price}>Add</button>
+                </div>
+              ))}
+            </div>
+
+            <div class="cart-summary">
+              <span class="total">Cart (<span id="inline-item-count">0</span>)</span>
+              <span class="amount" id="inline-cart-total">$0.00</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- User Auth -->
+        <div class="feature-panel">
+          <div class="feature-url-bar">
+            <div class="dots">
+              <span class="dot dot-red"></span>
+              <span class="dot dot-amber"></span>
+              <span class="dot dot-green"></span>
+            </div>
+            <span class="url">auth.docktree.local</span>
+          </div>
+          <div class="feature-body">
+            <h3>&#9651; Auth</h3>
+            <p class="feature-sub">worktree: feature/user-auth</p>
+
+            <div class="auth-tabs">
+              <button class="auth-tab active" id="inline-tab-login">Sign In</button>
+              <button class="auth-tab" id="inline-tab-signup">Sign Up</button>
+            </div>
+
+            <form id="inline-form-login">
+              <div class="form-group">
+                <label for="inline-login-email">Email</label>
+                <input type="email" id="inline-login-email" placeholder="dev@example.com" required />
+              </div>
+              <div class="form-group">
+                <label for="inline-login-pass">Password</label>
+                <input type="password" id="inline-login-pass" placeholder="&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;" required />
+              </div>
+              <button type="submit" class="btn-submit">Sign In</button>
+            </form>
+
+            <form id="inline-form-signup" style="display:none;">
+              <div class="form-group">
+                <label for="inline-su-name">Name</label>
+                <input type="text" id="inline-su-name" placeholder="Ada Lovelace" required />
+              </div>
+              <div class="form-group">
+                <label for="inline-su-email">Email</label>
+                <input type="email" id="inline-su-email" placeholder="ada@example.com" required />
+              </div>
+              <div class="form-group">
+                <label for="inline-su-pass">Password</label>
+                <input type="password" id="inline-su-pass" placeholder="&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;" required />
+              </div>
+              <button type="submit" class="btn-submit">Create Account</button>
+            </form>
+
+            <div class="auth-status" id="inline-auth-status"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Animated Terminal (cycling commands) -->
+  <section id="terminal" class="section" style="border-top:1px solid var(--border);">
+    <div class="container">
+      <div class="section-label">// terminal</div>
+      <h2 class="section-title">See it in action</h2>
+      <p class="section-desc">
+        Commands cycle automatically. Click a tab to jump to a specific command.
+      </p>
+
+      <div class="terminal-tabs" id="terminal-tabs">
+        <button class="terminal-tab active" data-cmd="0">up</button>
+        <button class="terminal-tab" data-cmd="1">down</button>
+        <button class="terminal-tab" data-cmd="2">status</button>
+        <button class="terminal-tab" data-cmd="3">platform</button>
+        <button class="terminal-tab" data-cmd="4">clean</button>
+        <button class="terminal-tab" data-cmd="5">proxy</button>
+        <button class="terminal-tab" data-cmd="6">tunnel</button>
+      </div>
+
+      <div class="terminal terminal-cycling">
+        <div class="terminal-bar">
+          <span class="dot dot-red"></span>
+          <span class="dot dot-amber"></span>
+          <span class="dot dot-green"></span>
+          <span class="terminal-title">~/myproject &mdash; zsh</span>
+        </div>
+        <div class="terminal-body" id="terminal-output">
+          <pre><code id="terminal-code"></code></pre>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Benefits -->
+  <section id="benefits" class="section" style="border-top:1px solid var(--border);">
+    <div class="container">
+      <div class="section-label">// how it works</div>
+      <h2 class="section-title">Port allocation, isolation, cleanup</h2>
+
+      <div class="flow">
+        <div class="flow-step">
+          <div class="step-num">01</div>
+          <h4>Allocate</h4>
+          <p>Each worktree gets unique ports from a managed pool (41000&ndash;49999). The registry prevents collisions across all worktrees in the repo.</p>
+        </div>
+        <div class="flow-step">
+          <div class="step-num">02</div>
+          <h4>Isolate</h4>
+          <p>Docktree generates a Compose override with unique project names, container names, and volumes. Shared databases get per-worktree tenant namespaces.</p>
+        </div>
+        <div class="flow-step">
+          <div class="step-num">03</div>
+          <h4>Clean up</h4>
+          <p>When worktrees are removed or go idle, <code>docktree clean</code> reclaims ports, removes orphaned containers, networks, and volumes.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Commands (at the bottom) -->
+  <!-- For AI agents -->
+  <section id="for-agents" class="section" style="border-top:1px solid var(--border);">
+    <div class="container">
+      <div class="section-label">// agent-native</div>
+      <h2 class="section-title">For AI agents</h2>
+      <p class="section-desc">
+        Docktree ships skills for Claude Code, Codex, Cursor, OpenCode, OMP/Pi, and 60+ other agents.
+      </p>
+      <div class="command-grid" style="margin-bottom:24px;">
+        <div class="cmd-card">
+          <div class="cmd-header">
+            <span class="cmd-name">docktree skill</span>
+          </div>
+          <p class="cmd-desc">Teaches your agent which commands honor <code>--json</code>, the error envelope format, lifecycle gotchas, and common multi-worktree workflows.</p>
+        </div>
+        <div class="cmd-card">
+          <div class="cmd-header">
+            <span class="cmd-name">docktree-init skill</span>
+          </div>
+          <p class="cmd-desc">Walks your agent through <code>docktree init</code> to generate a <code>docktree.yml</code> — scanning compose files and deciding on shared services and tenancy modes.</p>
+        </div>
+      </div>
+      <div class="terminal" style="max-width:560px;">
+        <div class="terminal-bar">
+          <span class="dot dot-red"></span>
+          <span class="dot dot-amber"></span>
+          <span class="dot dot-green"></span>
+          <span class="terminal-title">install skills</span>
+        </div>
+        <div class="terminal-body">
+          <pre><code><span class="prompt">$ </span>npx skills add Bnjoroge1/Docktree</code></pre>
+          <pre><code><span class="dim"># install globally for a specific agent</span></code></pre>
+          <pre><code><span class="prompt">$ </span>npx skills add Bnjoroge1/Docktree -g -a claude-code</code></pre>
+        </div>
+      </div>
+      <p style="margin-top:16px;font-size:0.825rem;color:var(--text-dim);">
+        <a href="/docs/getting-started/skills" style="color:var(--amber);">Full agent skills guide &rarr;</a>
+      </p>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container">
+      <p>
+        docktree v0.4.0
+        <span class="sep">|</span>
+        <a href="/docs/getting-started/installation">Docs</a>
+        <span class="sep">|</span>
+        <a href="https://github.com/Bnjoroge1/Docktree">GitHub</a>
+        <span class="sep">|</span>
+        MIT License
+      </p>
+    </div>
+  </footer>
+
+  <script is:inline>
+    // ---- Copy install command ----
+    (function() {
+      const cmd = document.getElementById('install-cmd');
+      const btn = document.getElementById('copy-btn');
+      const text = document.getElementById('copy-text');
+      btn.addEventListener('click', () => {
+        navigator.clipboard.writeText(cmd.textContent).then(() => {
+          text.textContent = 'copied!';
+          btn.classList.add('copied');
+          setTimeout(() => { text.textContent = 'copy'; btn.classList.remove('copied'); }, 2000);
+        });
+      });
+    })();
+
+    // ---- Copy skills command ----
+    (function() {
+      const cmd = document.getElementById('install-skills-cmd');
+      const btn = document.getElementById('copy-skills-btn');
+      const text = document.getElementById('copy-skills-text');
+      btn.addEventListener('click', () => {
+        navigator.clipboard.writeText(cmd.textContent).then(() => {
+          text.textContent = 'copied!';
+          btn.classList.add('copied');
+          setTimeout(() => { text.textContent = 'copy'; btn.classList.remove('copied'); }, 2000);
+        });
+      });
+    })();
+
+    // ---- Inline shopping cart ----
+    (function() {
+      let total = 0, count = 0;
+      document.querySelectorAll('#inline-products .btn-add').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const price = parseFloat(btn.dataset.price);
+          total += price; count++;
+          document.getElementById('inline-cart-total').textContent = '$' + total.toFixed(2);
+          document.getElementById('inline-item-count').textContent = count;
+          btn.textContent = 'Added';
+          btn.classList.add('added');
+          btn.disabled = true;
+        });
+      });
+    })();
+
+    // ---- Inline auth form ----
+    (function() {
+      const loginTab = document.getElementById('inline-tab-login');
+      const signupTab = document.getElementById('inline-tab-signup');
+      const loginForm = document.getElementById('inline-form-login');
+      const signupForm = document.getElementById('inline-form-signup');
+      const status = document.getElementById('inline-auth-status');
+
+      function switchTab(tab) {
+        status.className = 'auth-status';
+        status.style.display = 'none';
+        if (tab === 'login') {
+          loginTab.classList.add('active'); signupTab.classList.remove('active');
+          loginForm.style.display = 'block'; signupForm.style.display = 'none';
+        } else {
+          loginTab.classList.remove('active'); signupTab.classList.add('active');
+          loginForm.style.display = 'none'; signupForm.style.display = 'block';
+        }
+      }
+      loginTab.addEventListener('click', () => switchTab('login'));
+      signupTab.addEventListener('click', () => switchTab('signup'));
+
+      function showStatus(msg) { status.textContent = msg; status.className = 'auth-status success'; }
+
+      loginForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        showStatus('\u2713 Authenticated as ' + document.getElementById('inline-login-email').value);
+      });
+      signupForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        showStatus('\u2713 Account created for ' + document.getElementById('inline-su-name').value);
+      });
+    })();
+
+    // ---- Cycling terminal ----
+    (function() {
+      const commandData = [
+        {
+          cmd: 'docktree up --create feature/shopping-cart',
+          lines: [
+            { t: 'allocating ports for feature/shopping-cart...', c: 'dim' },
+            { t: '  web    \u2192 shopping-cart.docktree.local', c: 'ok' },
+            { t: '  db     \u2192 db.shopping-cart.docktree.local', c: 'ok' },
+            { t: '  redis  \u2192 redis.shopping-cart.docktree.local', c: 'ok' },
+            { t: '\u2713 feature/shopping-cart is up', c: 'ok' },
+          ]
+        },
+        {
+          cmd: 'docktree down',
+          lines: [
+            { t: 'stopping feature/shopping-cart...', c: 'dim' },
+            { t: '  removing containers...', c: 'dim' },
+            { t: '  releasing port allocations...', c: 'dim' },
+            { t: '\u2713 feature/shopping-cart is down', c: 'ok' },
+          ]
+        },
+        {
+          cmd: 'docktree status --all',
+          lines: [
+            { t: '  feature/shopping-cart   3 services   running', c: 'dim' },
+            { t: '  feature/user-auth       3 services   running', c: 'dim' },
+            { t: '', c: 'dim' },
+            { t: '  platform (shared)       2 services   running', c: 'dim' },
+          ]
+        },
+        {
+          cmd: 'docktree platform up',
+          lines: [
+            { t: 'starting shared platform...', c: 'dim' },
+            { t: '  postgres \u2192 shared.docktree.local:5432', c: 'ok' },
+            { t: '  redis    \u2192 shared.docktree.local:6379', c: 'ok' },
+            { t: '\u2713 platform is up', c: 'ok' },
+          ]
+        },
+        {
+          cmd: 'docktree clean --yes',
+          lines: [
+            { t: 'scanning for stale resources...', c: 'dim' },
+            { t: '  reclaiming 3 port allocations...', c: 'dim' },
+            { t: '  removing 2 orphaned containers...', c: 'dim' },
+            { t: '  pruning 1 unused network...', c: 'dim' },
+            { t: '\u2713 cleaned 6 resources', c: 'ok' },
+          ]
+        },
+        {
+          cmd: 'docktree proxy',
+          lines: [
+            { t: 'starting reverse proxy on http://127.0.0.1:8320...', c: 'dim' },
+            { t: '  shopping-cart.localhost \u2192 port 41002', c: 'ok' },
+            { t: '  user-auth.localhost     \u2192 port 41005', c: 'ok' },
+            { t: '  shared.localhost        \u2192 port 5432', c: 'ok' },
+            { t: 'listening... (press Ctrl+C to stop)', c: 'dim' },
+          ]
+        },
+        {
+          cmd: 'docktree tunnel start --service web',
+          lines: [
+            { t: 'starting cloudflare tunnel for web (port 41002)...', c: 'dim' },
+            { t: '  tunnel URL: https://shopping-cart.trycloudflare.com', c: 'ok' },
+            { t: '  status:     active (PID 83524)', c: 'ok' },
+            { t: 'press Ctrl+C to stop', c: 'dim' },
+          ]
+        },
+      ];
+
+      const codeEl = document.getElementById('terminal-code');
+      const tabs = document.querySelectorAll('.terminal-tab');
+      let currentIdx = 0;
+      let autoCycle = true;
+      let timers = [];
+
+      function clearTimers() { timers.forEach(t => clearTimeout(t)); timers = []; }
+
+      function typeCommand(idx) {
+        clearTimers();
+        const data = commandData[idx];
+        codeEl.innerHTML = '';
+
+        // Type command char by char
+        const cmdSpan = document.createElement('span');
+        cmdSpan.className = 'prompt';
+        codeEl.appendChild(cmdSpan);
+
+        const cmdText = document.createTextNode('');
+        codeEl.appendChild(cmdText);
+
+        let charIdx = 0;
+        function typeChar() {
+          if (charIdx < data.cmd.length) {
+            cmdText.data = data.cmd.substring(0, charIdx + 1);
+            charIdx++;
+            timers.push(setTimeout(typeChar, 35));
+          } else {
+            // Add newline after command
+            codeEl.appendChild(document.createElement('br'));
+            // Reveal output lines
+            data.lines.forEach((line, i) => {
+              timers.push(setTimeout(() => {
+                const lineEl = document.createElement('span');
+                lineEl.className = line.c;
+                lineEl.textContent = line.t;
+                codeEl.appendChild(lineEl);
+                codeEl.appendChild(document.createElement('br'));
+              }, 200 * (i + 1)));
+            });
+            // Schedule next command
+            const totalDelay = 200 * (data.lines.length + 1) + 2500;
+            if (autoCycle) {
+              timers.push(setTimeout(() => nextCommand(), totalDelay));
+            }
+          }
+        }
+        typeChar();
+      }
+
+      function nextCommand() {
+        currentIdx = (currentIdx + 1) % commandData.length;
+        tabs.forEach(t => t.classList.toggle('active', parseInt(t.dataset.cmd) === currentIdx));
+        // Fade out, switch, fade in
+        codeEl.style.opacity = '0';
+        timers.push(setTimeout(() => {
+          codeEl.style.opacity = '1';
+          typeCommand(currentIdx);
+        }, 250));
+      }
+
+      function showCommand(idx) {
+        currentIdx = idx;
+        tabs.forEach(t => t.classList.toggle('active', parseInt(t.dataset.cmd) === idx));
+        autoCycle = false;
+        codeEl.style.opacity = '0';
+        clearTimers();
+        setTimeout(() => {
+          codeEl.style.opacity = '1';
+          typeCommand(idx);
+          // Resume auto-cycle after 8s
+          timers.push(setTimeout(() => {
+            autoCycle = true;
+            nextCommand();
+          }, 8000));
+        }, 250);
+      }
+
+      tabs.forEach(tab => {
+        tab.addEventListener('click', () => showCommand(parseInt(tab.dataset.cmd)));
+      });
+
+      // Start
+      typeCommand(0);
+    })();
+  </script>
+</RetroLayout>

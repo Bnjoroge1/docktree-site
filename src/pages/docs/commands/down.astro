@@ -1,0 +1,40 @@
+---
+import DocsLayout from '../../../layouts/DocsLayout.astro';
+---
+
+<DocsLayout title="down" section="commands">
+  <h1>down</h1>
+  <p class="lead">Stop the current worktree's Compose project.</p>
+
+  <h2>Usage</h2>
+  <pre><code>docktree down [service...] [flags]</code></pre>
+  <p>Runs <code>docker compose down</code> for the current worktree's project. Can optionally drop per-worktree tenant databases and Docker volumes, or apply across all worktree instances.</p>
+
+  <h2>Flags</h2>
+  <table>
+    <thead><tr><th>Flag</th><th>Description</th></tr></thead>
+    <tbody>
+      <tr><td><code>-v, --volumes</code></td><td>Drop per-worktree tenant databases and Docker volumes (data permanently deleted)</td></tr>
+      <tr><td><code>-a, --all</code></td><td>Apply to all worktree instances in this repository</td></tr>
+      <tr><td><code>--dry-run</code></td><td>Show what would be stopped without making changes</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Arguments</h2>
+  <table>
+    <thead><tr><th>Arg</th><th>Description</th></tr></thead>
+    <tbody>
+      <tr><td><code>[service...]</code></td><td>One or more service names to stop (default: all services)</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Examples</h2>
+  <pre><code>docktree down          # stop current worktree
+docktree down --all    # stop all worktrees
+docktree down -v       # stop and remove volumes
+docktree down web      # stop a specific service</code></pre>
+
+  <h2>stop</h2>
+  <p>The <code>stop</code> command stops running containers without removing them (equivalent to <code>docker compose stop</code>):</p>
+  <pre><code>docktree stop [service...] [--dry-run]</code></pre>
+</DocsLayout>

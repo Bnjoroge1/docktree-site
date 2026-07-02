@@ -1,0 +1,48 @@
+---
+import DocsLayout from '../../../layouts/DocsLayout.astro';
+---
+
+<DocsLayout title="Overview" section="about">
+  <h1>Overview</h1>
+  <p class="lead">Docktree runs Docker Compose services across multiple git worktrees without port conflicts.</p>
+
+  <h2>What is Docktree?</h2>
+  <p>Docktree is a CLI tool that manages Docker Compose services across multiple git worktrees simultaneously. It solves three core conflicts that arise when running multiple instances of the same project: compose project name collisions, port conflicts, and service name conflicts.</p>
+  <p>Each worktree gets its own isolated project with unique ports (allocated from range 41000–49999), container names, and volumes — all managed through generated Compose override files.</p>
+  <p><strong>Crucially, Docktree requires zero modifications to your existing Docker Compose files.</strong> It acts as a non-intrusive, drop-in wrapper that reads your original <code>docker-compose.yml</code> (or <code>compose.yml</code>) and dynamically generates standard Compose override files on the fly, keeping your git history and compose configurations completely clean.</p>
+
+  <h2>Why? The 5 ways Docker Compose conflicts</h2>
+  <p>When you attempt to run the same Docker Compose stack across multiple git worktrees, Docker Compose will collide on several resources:</p>
+  <ul>
+    <li><strong>Project Names:</strong> By default, Compose uses the directory name as the project name. Running multiple checkouts of the same repo results in project name collisions, causing one stack to overwrite or shut down the other.</li>
+    <li><strong>Host Port Bindings:</strong> If your services bind to static host ports (e.g. <code>8080:8080</code>), starting a second stack will fail with a "port already allocated" error.</li>
+    <li><strong>Container Names:</strong> If your compose files declare explicit <code>container_name</code> fields, Docker refuses to run a second container with the same name.</li>
+    <li><strong>Named Volumes:</strong> Without namespace isolation, multiple instances share the same named volumes, resulting in data leakage, corruption, or database schema conflicts.</li>
+    <li><strong>Default Networks:</strong> Identical project names cause Compose to use the same default network, leading to cross-network namespace pollution or connection leaks between branches.</li>
+  </ul>
+
+  <h2>A limited way to fix the above</h2>
+  <p>To avoid the conflicts mentioned above without using Docktree, you could attempt to configure Docker Compose manually using its native features. However, this requires significant manual configuration and does not cover all conflicts cleanly:</p>
+  
+  <h3>1. Using the <code>-p / --project-name</code> flag</h3>
+  <p>You can run <code>docker compose -p my-branch up</code>. This isolates project and default network namespaces.</p>
+  <p><strong>Limitation:</strong> This does <em>not</em> solve host port collisions (if two stacks bind to <code>80:80</code>, one will crash) or container name collisions (if you have explicit <code>container_name</code> fields in your YAML). It also fails to isolate external networks or named volumes unless they are also parameterized.</p>
+
+  <h3>2. Environment Variable Interpolation</h3>
+  <p>You can parameterize your <code>docker-compose.yml</code> by replacing hardcoded values with variables (e.g. <code>&#36;&#123;PORT&#125;</code>, <code>&#36;&#123;PROJECT_NAME&#125;</code>) and creating a custom <code>.env</code> file in each worktree directory.</p>
+  <p><strong>Limitation:</strong> You must manually allocate and keep track of occupied host ports on your machine, and manually write them to each local <code>.env</code> file, which is highly error-prone.</p>
+
+  <h3>3. Hand-written Override Files</h3>
+  <p>You can manually create a <code>docker-compose.override.yml</code> in each worktree directory to redefine container names and ports for that specific branch.</p>
+  <p><strong>Limitation:</strong> You have to write custom YAML overrides by hand every time you create a worktree, find available ports yourself, and clean them up afterwards.</p>
+
+  <h2>How it works</h2>
+  <ol>
+    <li><strong>Port allocation</strong> — Each worktree gets unique ports from a managed pool. The registry prevents collisions across all worktrees in the repo.</li>
+    <li><strong>Isolation</strong> — Docktree generates a Compose override with unique project names, container names, and volumes. Shared databases get per-worktree tenant namespaces.</li>
+    <li><strong>Cleanup</strong> — When worktrees are removed or go idle, <code>docktree clean</code> reclaims ports and removes orphaned containers, networks, and volumes.</li>
+  </ol>
+
+  <h2>Getting started</h2>
+  <p>Get started with Docktree by checking out the <a href="/docs/getting-started/installation">installation guide</a>.</p>
+</DocsLayout>

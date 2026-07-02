@@ -1,0 +1,116 @@
+---
+import '../styles/retro.css';
+
+interface Props {
+  title: string;
+  description?: string;
+  section?: string;
+}
+
+const { title, description, section } = Astro.props;
+
+const nav = [
+  {
+    label: 'About',
+    items: [
+      { title: 'Overview', href: '/docs/about/overview' },
+    ],
+  },
+  {
+    label: 'Architecture & Design',
+    items: [
+      { title: 'Architecture & Design', href: '/docs/architecture/design' },
+    ],
+  },
+  {
+    label: 'Getting Started',
+    items: [
+      { title: 'Installation', href: '/docs/getting-started/installation' },
+      { title: 'Quick Start', href: '/docs/getting-started/quickstart' },
+    ],
+  },
+  {
+    label: 'Integrations',
+    items: [
+      { title: 'Overview & Setup', href: '/docs/integrations/setup' },
+    ],
+  },
+  {
+    label: 'Commands',
+    items: [
+      { title: 'up', href: '/docs/commands/up' },
+      { title: 'down', href: '/docs/commands/down' },
+     { title: 'stop', href: '/docs/commands/stop' },
+      { title: 'status', href: '/docs/commands/status' },
+      { title: 'ports', href: '/docs/commands/ports' },
+     { title: 'volumes', href: '/docs/commands/volumes' },
+      { title: 'create', href: '/docs/commands/create' },
+      { title: 'prepare', href: '/docs/commands/prepare' },
+      { title: 'sync', href: '/docs/commands/sync' },
+      { title: 'clean', href: '/docs/commands/clean' },
+      { title: 'platform', href: '/docs/commands/platform' },
+     { title: 'proxy', href: '/docs/commands/proxy' },
+     { title: 'tunnel', href: '/docs/commands/tunnel' },
+     { title: 'init', href: '/docs/commands/init' },
+     { title: 'docker', href: '/docs/commands/docker' },
+    ],
+  },
+  {
+    label: 'Configuration',
+    items: [
+      { title: 'docktree.yml', href: '/docs/configuration/docktree-yml' },
+    ],
+  },
+];
+
+const currentPath = Astro.url.pathname;
+---
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{title} — Docktree</title>
+  {description && <meta name="description" content={description} />}
+</head>
+<body>
+  <div class="scanlines"></div>
+  <div class="docs-layout">
+    <!-- Sidebar -->
+    <aside class="docs-sidebar">
+      <div class="sidebar-brand">
+        <a href="/"><span class="tree">&#9651;</span> docktree <span class="sidebar-version">v0.4.0</span></a>
+      </div>
+      <nav>
+        {nav.map(group => (
+          <div class="sidebar-section">
+            <h5>{group.label}</h5>
+            <ul>
+              {group.items.map(item => (
+                <li>
+                  <a href={item.href} class={currentPath === item.href ? 'active' : ''}>{item.title}</a>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))}
+      </nav>
+    </aside>
+
+    <!-- Main -->
+    <div class="docs-main">
+      <div class="docs-topbar">
+        <div class="breadcrumb">docs / <span>{section || title}</span></div>
+        <div class="topbar-links">
+          <a href="/">Home</a>
+          <a href="https://github.com/Bnjoroge1/Docktree">GitHub</a>
+        </div>
+      </div>
+      <div class="docs-content">
+        <slot />
+      </div>
+    </div>
+  </div>
+</body>
+</html>

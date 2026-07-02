@@ -1,0 +1,141 @@
+---
+import DocsLayout from '../../../layouts/DocsLayout.astro';
+---
+
+<DocsLayout title="Architecture & Design" section="architecture">
+  <h1>Architecture & Design</h1>
+  <p class="lead">How Docktree orchestrates Docker Compose across multiple git worktrees — and the tradeoffs you need to know before deploying it.</p>
+
+  <h2>Default isolation: always on, zero config</h2>
+  <p>Without any <code>docktree.yml</code> or platform configuration, every worktree is <strong>fully isolated by default</strong>. When you run <code>docktree up</code> in a worktree, Docktree:</p>
+  <ol>
+    <li>Allocates a unique set of host ports from the managed pool (<code>41000–49999</code>).</li>
+    <li>Generates a Compose override that rewrites the project name, container names, and volume names to be unique to that worktree.</li>
+    <li>Each service defined in your compose file — including databases — gets its own dedicated container. Your <code>postgres</code> in <code>feature-a</code> and your <code>postgres</code> in <code>feature-b</code> are completely separate containers, with separate data volumes.</li>
+  </ol>
+  <p><strong>This is the right default for most cases</strong>, especially when worktrees have diverging database schemas (e.g. different migration states). No configuration is required to get this behavior.</p>
+
+  <h2>System Architecture</h2>
+  <p>Docktree sits between Git and Docker Compose. It reads your existing <code>docker-compose.yml</code>, generates an ephemeral override file for each worktree, and delegates to the Docker Compose engine. It never modifies your source files.</p>
+  <pre style="background:var(--surface);border:1px solid var(--border);padding:16px;font-family:var(--mono);font-size:0.75rem;line-height:1.4;color:var(--amber-dim);margin-bottom:20px;">
+  Git worktree            Docktree                   Docker Engine
+  ─────────────           ────────────               ─────────────
+  feature-a/    ──up──▶  allocate ports          ──▶  containers-a
+  feature-b/    ──up──▶  generate overrides      ──▶  containers-b
+                         rewrite env vars
+                         manage port registry
+  </pre>
+
+  <h2>Platform Tier: when to use it</h2>
+  <p>The Platform Tier is an <strong>optional infrastructure optimization</strong>. Both the default mode and the platform tier give every worktree a fully isolated database — the difference is only in <em>how</em> that isolation is implemented, not whether it exists.</p>
+  <ul>
+    <li><strong>Default (per-worktree containers):</strong> Each worktree runs its own dedicated database container. Physical isolation — no server process is shared at all.</li>
+    <li><strong>Platform Tier:</strong> A single database server process runs once for the whole repo. Each worktree still gets its own completely isolated namespace inside that server (a separate Postgres DB, a separate Mongo DB, etc.). Your app connects to a <code>DATABASE_URL</code> that points to its own data — nothing leaks between worktrees.</li>
+  </ul>
+  <p>The tradeoff is purely about <strong>resource efficiency</strong>, not isolation quality.</p>
+
+  <p>Use the platform tier when:</p>
+  <ul>
+    <li>You have many active worktrees and running a full database per worktree would exhaust host memory or disk.</li>
+    <li>Your database schema is <strong>stable across branches</strong> (all branches are near the same migration state).</li>
+    <li>Startup speed matters — shared containers don't need to restart between branch switches.</li>
+  </ul>
+
+  <p>Stick with the default (separate containers per worktree) when:</p>
+  <ul>
+    <li>Branches carry <strong>diverging migration states</strong> — each worktree's database may be at a different schema version. Separate containers make this trivially safe.</li>
+    <li>You want the simplest mental model for destructive schema changes or data wipes — a physical container boundary is easier to reason about than a logical namespace inside a shared server.</li>
+    <li>Your compose stack is lightweight and resource cost is not a concern.</li>
+  </ul>
+
+  <pre style="background:var(--surface);border:1px solid var(--border);padding:16px;font-family:var(--mono);font-size:0.75rem;line-height:1.4;color:var(--amber-dim);margin-bottom:20px;">
+  Default (no platform tier):          Platform Tier (shared infra):
+
+  feature-a ──▶ postgres-a (own)       feature-a ──▶ db_feature_a ─┐
+  feature-b ──▶ postgres-b (own)       feature-b ──▶ db_feature_b ─┼──▶ shared postgres
+  feature-c ──▶ postgres-c (own)       feature-c ──▶ db_feature_c ─┘
+
+  Both: each worktree connects to its own isolated DATABASE_URL
+  Difference: physical container vs. logical namespace in one server
+
+  Memory:    3× database processes     Memory:    1× database process
+  Schema:    each DB fully independent Schema:    all DBs on one server version
+  </pre>
+
+  <h2>Supported Shared Services & Tenancy Modes</h2>
+  <p>Shared platform services are declared in the <code>shared.services</code> block of <code>docktree.yml</code>. Docktree natively supports the following service kinds:</p>
+  <table>
+    <thead>
+      <tr>
+        <th>Service Kind</th>
+        <th>Supported Tenancy</th>
+        <th>Isolation Mechanism</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><code>postgres</code></td>
+        <td><code>per_database</code>, <code>full_share</code></td>
+        <td>Unique database per worktree. Optionally cloned from a <code>template</code> database for instant seed data / migration state.</td>
+      </tr>
+      <tr>
+        <td><code>mysql</code></td>
+        <td><code>per_database</code>, <code>full_share</code></td>
+        <td>Unique database name per worktree.</td>
+      </tr>
+      <tr>
+        <td><code>mongodb</code></td>
+        <td><code>per_database</code>, <code>full_share</code></td>
+        <td>Unique Mongo database namespace per worktree.</td>
+      </tr>
+      <tr>
+        <td><code>redis</code></td>
+        <td><code>per_database</code>, <code>full_share</code></td>
+        <td>Isolated Redis logical database indices (0, 1, 2 …) allocated per worktree.</td>
+      </tr>
+      <tr>
+        <td><code>s3</code></td>
+        <td><code>per_database</code>, <code>full_share</code></td>
+        <td>Unique bucket name per worktree (compatible with localstack / MinIO).</td>
+      </tr>
+      <tr>
+        <td><code>generic</code></td>
+        <td><code>full_share</code></td>
+        <td>No partitioning — all worktrees share the same service instance. Use for stateless services or read-only dependencies.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2>Dynamic Environment Variable Rewriting</h2>
+  <p>When using <code>per_database</code> tenancy, Docktree detects database connection environment variables declared in your Compose files (e.g. <code>DATABASE_URL</code>, <code>DB_NAME</code>, <code>MONGO_URI</code>) and rewrites them in the generated override so each worktree connects to its own isolated namespace automatically.</p>
+  <p>This works because Docktree reads the environment directly from your Compose YAML at startup — no runtime agent or sidecar is required.</p>
+
+  <h2>Gotchas</h2>
+
+  <h3>Secret managers that build DATABASE_URL at runtime</h3>
+  <p>Docktree rewrites environment variables it can see in your Compose files at startup. If your application retrieves secrets from <strong>Infisical, Doppler, Vault, AWS Secrets Manager</strong>, or any other runtime secret manager that constructs <code>DATABASE_URL</code> dynamically inside a shell command or entrypoint, Docktree cannot safely rewrite it.</p>
+  <p>In that case, use one of these approaches instead:</p>
+  <ul>
+    <li><strong>Preferred:</strong> Read the Docktree-provided <code>DATABASE_URL</code> from the container environment first — have the wrapper respect an existing env var before fetching from the vault.</li>
+    <li><strong>Fallback:</strong> Skip the platform tier entirely and use isolated per-worktree database containers (the default). No rewriting needed — each worktree has its own DB.</li>
+  </ul>
+  <blockquote>
+    <p><strong>Rule of thumb:</strong> If you can see the database URL as a static env var in <code>docker-compose.yml</code>, Docktree can rewrite it. If it's assembled at runtime, it can't.</p>
+  </blockquote>
+
+  <h3>Branches with diverging migration states</h3>
+  <p>When using the platform tier with <code>per_database</code> tenancy, each worktree gets its own database but they all live inside the same server process. If a branch runs destructive migrations (dropping columns, renaming tables), those changes affect only that branch's database — but mistakes in schema tooling can sometimes touch the wrong database. Test destructive migrations in separate containers (the default mode) rather than the platform tier.</p>
+
+  <h3>Platform tier must be started from the repo root</h3>
+  <p>The platform stack is repo-scoped, not worktree-scoped. Run <code>docktree platform up</code> from the <strong>main repo root</strong>, not from inside a worktree. Running it from a worktree directory will likely fail to detect the correct shared services config.</p>
+
+  <h3>Windows: WSL2 required</h3>
+  <p>Docktree is not supported on native Windows. On Windows, run it inside WSL2 with the Docker Desktop WSL integration enabled. All paths, port allocations, and Compose file detection work correctly under WSL2.</p>
+
+  <h3>Docktree is not a security sandbox</h3>
+  <p>While Docktree isolates your development environments (giving each worktree its own ports, container names, networks, and volumes), it is <strong>not a security sandbox</strong>.</p>
+  <p>All containers still run on the same shared Docker daemon of the host machine. If a container has root access or mounts the Docker socket (<code>/var/run/docker.sock</code>), it retains the same security risks as standard Docker Compose. Docktree prevents operational collisions; it does not isolate system-level permissions or provide kernel-level security boundaries.</p>
+
+  <h3>Port registry is per-repo</h3>
+  <p>Docktree allocates ports from a registry scoped to the repository root. If you have two separate repositories that both use Docktree, their port ranges will not collide by default — each tracks its own registry in <code>.docktree/</code>. However, if you manually set <code>ports.range</code> to the same range in two different repos on the same machine, collisions are possible.</p>
+</DocsLayout>

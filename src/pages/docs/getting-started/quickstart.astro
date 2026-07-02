@@ -1,0 +1,51 @@
+---
+import DocsLayout from '../../../layouts/DocsLayout.astro';
+---
+
+<DocsLayout title="Quick Start" section="getting-started">
+  <h1>Quick Start</h1>
+  <p class="lead">Spin up two worktree stacks running concurrently in under a minute.</p>
+
+  <h2>1. Create a worktree and start its stack</h2>
+  <p>From your main repo root:</p>
+  <pre><code>docktree up --create feature/shopping-cart</code></pre>
+  <p>Docktree creates the worktree, allocates unique ports, generates a Compose override, and runs <code>docker compose up -d</code>.</p>
+
+  <h2>2. Start a second worktree concurrently</h2>
+  <pre><code>docktree up --create feature/user-auth</code></pre>
+  <p>Both stacks now run simultaneously with isolated ports, containers, and volumes.</p>
+
+  <h2>3. Check what's running</h2>
+  <pre><code>docktree status --all</code></pre>
+  <pre><code>  feature/shopping-cart   3 services   running
+  feature/user-auth       3 services   running</code></pre>
+
+  <h2>4. View allocated ports</h2>
+  <pre><code>docktree ports --all</code></pre>
+  <pre><code>  feature/shopping-cart
+    web    → 127.0.0.1:41001
+    db     → 127.0.0.1:41002
+    redis  → 127.0.0.1:41003
+
+  feature/user-auth
+    web    → 127.0.0.1:41011
+    db     → 127.0.0.1:41012
+    redis  → 127.0.0.1:41013</code></pre>
+
+  <h2>5. Stop a worktree's stack</h2>
+  <pre><code>cd ../myproject.worktrees/feature/shopping-cart
+docktree down</code></pre>
+  <p>Or stop all worktree stacks at once:</p>
+  <pre><code>docktree down --all</code></pre>
+
+  <h2>6. Clean up stale resources</h2>
+  <p>When you remove a worktree with <code>git worktree remove</code>, its Docker resources become stale. Reclaim them:</p>
+  <pre><code>docktree clean --yes</code></pre>
+
+  <h2>Next steps</h2>
+  <ul>
+    <li>Read the full <a href="/docs/commands/up">command reference</a></li>
+    <li>Learn about <a href="/docs/configuration/docktree-yml">docktree.yml configuration</a></li>
+    <li>Set up a <a href="/docs/commands/platform">shared platform tier</a> for databases</li>
+  </ul>
+</DocsLayout>

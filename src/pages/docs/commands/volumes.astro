@@ -1,0 +1,26 @@
+---
+import DocsLayout from '../../../layouts/DocsLayout.astro';
+---
+
+<DocsLayout title="volumes" section="commands">
+  <h1>volumes</h1>
+  <p class="lead">Show Docktree-managed volumes.</p>
+
+  <h2>Usage</h2>
+  <pre><code>docktree volumes [options]</code></pre>
+  <p>The <code>volumes</code> command lists the Docker volumes managed by Docktree for the current worktree's project. This helps you track which volumes exist and how their logical names map to physical Docker volume names.</p>
+
+  <h2>Flags</h2>
+  <table>
+    <thead><tr><th>Flag</th><th>Description</th></tr></thead>
+    <tbody>
+      <tr><td><code>-a, --all</code></td><td>Show volumes for all active worktree instances across the repository</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Examples</h2>
+  <p>List volumes for the current worktree:</p>
+  <pre><code>docktree volumes</code></pre>
+  <p>List volumes across all active worktrees:</p>
+  <pre><code>docktree volumes --all</code></pre>
+</DocsLayout>
