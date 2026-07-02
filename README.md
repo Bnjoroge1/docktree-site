@@ -4,6 +4,14 @@ This repository contains the Docktree marketing and documentation site.
 
 Docktree helps developers run Docker Compose stacks across multiple git worktrees without collisions on ports, containers, project names, networks, volumes, or shared service state.
 
+## Links
+
+- Live site: https://docktree.dev
+- Documentation: https://docktree.dev/docs
+- Overview: https://docktree.dev/docs/about/overview
+- Installation guide: https://docktree.dev/docs/getting-started/installation
+- Docktree CLI repository: https://github.com/Bnjoroge1/Docktree
+
 ## Routes
 
 - `/` — homepage and product overview
