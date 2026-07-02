@@ -47,6 +47,35 @@ npm run preview
 
 Requires Node.js `>=22.12.0`.
 
+## Cloudflare MCP
+
+This repo includes a repo-local MCP config for Cloudflare's Workers Bindings MCP server:
+
+```txt
+.mcp.json
+```
+
+It connects through the official remote MCP endpoint:
+
+```txt
+https://bindings.mcp.cloudflare.com/mcp
+```
+
+The server is launched through `mcp-remote`:
+
+```json
+{
+  "mcpServers": {
+    "cloudflare": {
+      "command": "npx",
+      "args": ["mcp-remote", "https://bindings.mcp.cloudflare.com/mcp"]
+    }
+  }
+}
+```
+
+Restart your MCP-capable client after adding this config. On first use, it opens a Cloudflare OAuth flow. After authorization, the Cloudflare tools can list and manage supported Workers platform resources such as KV namespaces, Workers, R2 buckets, D1 databases, and Hyperdrive configs.
+
 ## Deployment
 
 The site deploys to Cloudflare Pages via GitHub Actions.
